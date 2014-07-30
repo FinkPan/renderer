@@ -1,0 +1,3 @@
+[submodule "cmake"]
+	path = cmake
+	url = git@192.168.1.202:limbo/hslib_cmake.git
