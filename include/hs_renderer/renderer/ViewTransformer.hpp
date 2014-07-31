@@ -22,7 +22,6 @@ public:
   ~ViewTransformer();
 
   const float* GetMVP();
-  const float* GetPV();
   const glm::mat4 GetModel() const;
 
   void SetProjection(float left, float right, float bottom, float top, ProjectionMode projectionMode = ORTHOGRAPHIC);
@@ -59,7 +58,6 @@ private:
   glm::mat4 View_;
   glm::mat4 Model_;
   glm::mat4 MVP_;
-  glm::mat4 axis_MVP_;
 
   float left_;
   float right_;

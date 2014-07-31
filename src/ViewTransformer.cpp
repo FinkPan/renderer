@@ -2,9 +2,9 @@
 #include "hs_renderer/renderer/ViewTransformer.hpp"
 
 ViewTransformer::ViewTransformer()
-  :near_(-10000.0f), far_(10000.0f)
+  :near_(-100000.0f), far_(100000.0f)
 {
-  Projection_ = glm::ortho(-3.0f, 3.0f, -3.0f,3.0f,-10000.0f,10000.0f);
+  Projection_ = glm::ortho(-3.0f, 3.0f, -3.0f,3.0f,near_,far_);
   View_ = glm::lookAt(
     glm::vec3(0,0,1), //eye表示我们眼睛在"世界坐标系"中的位置
     glm::vec3(0,0,0), //center表示眼睛"看"的那个点的坐标,
@@ -12,7 +12,6 @@ ViewTransformer::ViewTransformer()
     );
   Model_ = glm::mat4(1.0f);
   MVP_ = Projection_ * View_ * Model_;
-  axis_MVP_ = Projection_ * View_ * Model_;
 }
 
 ViewTransformer::~ViewTransformer()
@@ -23,11 +22,6 @@ const float* ViewTransformer::GetMVP()
 {
   MVP_ = Projection_ * View_ * Model_;
   return glm::value_ptr(MVP_);
-}
-const float* ViewTransformer::GetPV()
-{
-  axis_MVP_ = Projection_ * View_;
-  return glm::value_ptr(axis_MVP_);
 }
 const glm::mat4 ViewTransformer::GetModel() const
 {
@@ -77,6 +71,7 @@ void ViewTransformer::init(int x, int y, int width, int height)
 {
   viewport_x_ = x;          viewport_y_ = y;
   viewport_width_ = width;  viewport_height_ = height;
+  SetProjection(-1,1,-1,1);
 }
 
 void ViewTransformer::Translate(float x, float y, float z)
@@ -128,6 +123,13 @@ void ViewTransformer::CalculateBox()
    {
      viewport_bottom_= (top_ + bottom_) /2 - half_w;
      viewport_top_   = (top_ + bottom_) /2 + half_w;
+     viewport_left_  = left_;
+     viewport_right_ = right_;
+   }
+   else
+   {
+     viewport_bottom_= bottom_;
+     viewport_top_   = top_;
      viewport_left_  = left_;
      viewport_right_ = right_;
    }
