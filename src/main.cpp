@@ -7,10 +7,14 @@
 
 #include "hs_renderer/renderer/OBJLoader.hpp"
 #include "hs_renderer/renderer/ViewTransformer.hpp"
+#include "hs_renderer/renderer/OBJRenderer.hpp"
+#include "hs_renderer/renderer/RenderOBJ.hpp"
 
 std::string file_path = "list.txt";
 OBJLoader obj_loader;
 ViewTransformer view_transformer;
+OBJRenderer obj_renderer;
+RenderOBJ render_obj;
 
 void init(void)
 {
@@ -19,6 +23,7 @@ void init(void)
    obj_loader.LoadOBJ(file_path);
    obj_loader.InitializeViewTransformer(view_transformer);
    obj_loader.Start();
+   render_obj.init();
 }
 
 
@@ -114,6 +119,9 @@ void mouseMidCB(int wheel, int direction, int x, int y)
 void display(void)
 {
   obj_loader.UpdateLoadingOBJ(view_transformer);
+  obj_loader.GetLoadedMaterial(render_obj)
+  obj_renderer.LoadData(render_obj);
+  obj_renderer.Render(view_transformer);
 
   glFlush();
 }

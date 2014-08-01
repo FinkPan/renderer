@@ -9,11 +9,23 @@ public:
   OBJData();
   ~OBJData();
 
-  void LoadOBJ();
+  void LoadOBJ(const std::string& full_file_path);
   void UnLoadOBJ();
+  inline size_t vertex_size() const { return vertex_size_; }
+  inline size_t texturecoord_size() const { return texturecoord_size_; }
+  inline size_t index_size() const { return index_size_; }
+  inline float* vertex_data() const { return vertex_data_; }
+  inline float* texturecoord_data() const { return texturecoord_data_; }
+  inline unsigned int* index_data() const { return index_data_; }
+  inline int image_width()  const { return image_width_; }
+  inline int image_height() const { return image_height_; }
+  inline unsigned char* image_data() const { return image_data_; }
+  inline bool has_load() const { return has_load_; }
+  inline std::string getfilename() const { return file_path_; }
 
 private:
-  bool has_ready_;
+  std::string file_path_;
+  bool has_load_;
   int lod_;
   float box_[6]; // minx, miny, minz, maxx, maxy, maxz;
   size_t vertex_size_;
@@ -25,7 +37,6 @@ private:
   int image_width_;
   int image_height_;
   unsigned char* image_data_;
-  std::string file_path_;
 };
 
 #endif

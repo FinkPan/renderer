@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream> 
+#include <algorithm>
 
 #include "glm/glm.hpp"
 #include <glm/gtc/matrix_transform.hpp>
@@ -49,26 +50,42 @@ void OBJLoader::Work()
   std::thread::id main_thread_id = std::this_thread::get_id();
   std::cout << "Work = " << main_thread_id << "\n";
   std::string current_obj_path;
+  OBJData obj_data;
 
   while (keep_working_)
   {
-    //默认加载最高层第一个obj    
     Lock();
-     auto itr_key = m_FileInfo_.find((int)current_lod_);
-     if (itr_key != m_FileInfo_.end())
-     {
-      // Load(current_obj_path);
-     }
+    //默认加载最高层第一个obj    
+    auto itr_obj_path = m_FileInfo_.find(current_lod_);
+    size_t itr_obj_path_count = m_FileInfo_.count(current_lod_);
+    for (int i = 0; i != itr_obj_path_count; ++i,++itr_obj_path)
+    {
+      if (itr_obj_path->second.needed_load == true) //该obj需要加载
+      {
+        if (itr_obj_path->second.has_load == false) //该obj没有加载
+        {
+          obj_data.LoadOBJ(itr_obj_path->second.file_path);
+          vecOBJData_.push_back(obj_data);
+        }
+      }
+      else   //不需要加载,如果已经加载则删掉该obj
+      {  
+        for (auto itr_pos = vecOBJData_.begin(); itr_pos != vecOBJData_.end(); ++itr_pos)
+        {
+          if (itr_pos->getfilename() == itr_obj_path->second.file_path)
+            vecOBJData_.erase(itr_pos);
+        }
+      }
+    }
     Unlock();
-  }
-
+  }//  while (keep_working_)
 }
 
 //文件格式:
 //14 20
 //E:\workspace\obj\tianyang_gonglian\Tile_+003_+004
 //...
-void OBJLoader::LoadOBJ(std::string file_path)
+void OBJLoader::LoadOBJ(const std::string& file_path)
 {
   std::string file_name;
   int lod_min = 0, lod_max = 0;
@@ -112,10 +129,11 @@ void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
   glm::vec4 box0,box1, box2, box3, box4, box5, box6, box7;
 
   Lock();
-
   current_lod_ = vt.lod();
   auto itr_obj_path = m_FileInfo_.find(current_lod_);
   size_t itr_obj_path_count = m_FileInfo_.count(current_lod_);
+  //std::vector<std::string>::iterator itr_pos = needed_load_.begin();
+
   for (int i = 0; i != itr_obj_path_count; ++i,++itr_obj_path)
   {
     box0 = glm::vec4(itr_obj_path->second.box[0],itr_obj_path->second.box[1], itr_obj_path->second.box[5],  1.0f);
@@ -126,21 +144,50 @@ void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
     box5 = glm::vec4(itr_obj_path->second.box[0],itr_obj_path->second.box[4], itr_obj_path->second.box[2],  1.0f);
     box6 = glm::vec4(itr_obj_path->second.box[3],itr_obj_path->second.box[4], itr_obj_path->second.box[2],  1.0f);
     box7 = glm::vec4(itr_obj_path->second.box[3],itr_obj_path->second.box[1], itr_obj_path->second.box[2],  1.0f);
+    //与变化过的model矩阵相乘;
+    box0 = model * box0; box1 = model * box1; box2 = model * box2; box3 = model * box3; box4 = model * box4;
+    box5 = model * box5; box6 = model * box6; box7 = model * box7;
 
+    //minx > right || miny > top || maxx < left || maxy < bottom 则出了屏幕.
+    if (box0.x > right || box0.y > top || box1.x > right || box1.y < bottom || box2.x < left || box2.y < bottom ||
+        box3.x < left  || box3.y > top || box4.x > right || box4.y > top    || box5.x > right|| box5.y < bottom ||
+        box6.x < left  || box6.y < bottom || box7.x < left || box7.y > top)
+    { 
+//         itr_pos = find(needed_load_.begin(),needed_load_.end(),itr_obj_path->second.file_path);
+//         if (itr_pos != needed_load_.end()) //该obj不再需要.
+//         {
+//           itr_obj_path->second.has_load = false;
+//           needed_load_.erase(itr_pos);
+//         }
+      itr_obj_path->second.needed_load = false;
 
-     if(IsNeededLoad(itr_obj_path->second.box))
-       needed_load_.push_back(itr_obj_path->second.file_path);
-  }
+    }
+    else  //在屏幕内.需要显示出来
+    {
+//       itr_pos = find(needed_load_.begin(),needed_load_.end(),itr_obj_path->second.file_path);
+//       if (itr_pos != needed_load_.end())  //已经在屏幕内了,但是已经加载过,不需要重新加载;
+//       {
+//         itr_obj_path->second.has_load = true;
+//       }
+//       else    //已经在屏幕内了, 但是没有加载;需要重新加载;
+//       {
+//         itr_obj_path->second.has_load = false;
+//         needed_load_.push_back(itr_obj_path->second.file_path);
+//       }
+      itr_obj_path->second.needed_load = true;
+
+    }//else  //在屏幕内.需要显示出来
+  }//for (int i = 0; i != itr_obj_path_count; ++i,++itr_obj_path)
 
   Unlock();
 
 }
 
-void OBJLoader::GetLoadedMaterial(std::vector<std::string>& vec_str)
+void OBJLoader::GetLoadedMaterial(RenderOBJ &robj)
 {
   std::string str_file;
   Lock();
-
+   
   Unlock();
 }
 
@@ -180,7 +227,7 @@ void OBJLoader::CalculateBox()
       obj_file_path.read((char*)&lod,sizeof(int));
       obj_file_path.read((char*)&(itr_obj_path->second.box),sizeof(itr_obj_path->second.box));
       obj_file_path.close();
-      itr_obj_path->second.data_finsh = true;
+     // itr_obj_path->second.data_finsh = false;
       box_[0] = box_[0] < itr_obj_path->second.box[0] ? box_[0] : itr_obj_path->second.box[0];
       box_[1] = box_[1] < itr_obj_path->second.box[1] ? box_[1] : itr_obj_path->second.box[1];
       box_[2] = box_[2] < itr_obj_path->second.box[2] ? box_[2] : itr_obj_path->second.box[2];
@@ -193,8 +240,4 @@ void OBJLoader::CalculateBox()
   Unlock();
 }
 
-bool OBJLoader::IsNeededLoad(float* box)
-{
 
-  return true;
-}
