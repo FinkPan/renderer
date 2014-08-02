@@ -9,6 +9,9 @@
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "hs_renderer/renderer/RenderOBJ.hpp"
+#include "hs_renderer/renderer/ViewTransformer.hpp"
+
 class OBJRenderer
 {
 public:
@@ -16,8 +19,11 @@ public:
   ~OBJRenderer();
 
   void init();
+  void LoadData(const RenderOBJ& robj);
+  void Render(ViewTransformer& vt);
 
 private:
+  std::vector<RenderOBJ> vec_render_obj_;
   GLuint program_id_;
   GLuint location_mvp_;
   GLuint location_color_;

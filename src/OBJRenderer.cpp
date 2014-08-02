@@ -13,7 +13,7 @@ void OBJRenderer::init()
   program_id_ = LoadShader(vertex_shader_source, fragment_shader_source);
   glUseProgram(program_id_);
   location_mvp_ = glGetUniformLocation(program_id_, "MVP");
-  location_color_ = glGetUniformLocation(program_id_, "setColor");
+  location_color_  = glGetUniformLocation(program_id_, "myTextureSampler");
   glUseProgram(0);
 
   glm::mat4 Projection = glm::ortho(-3.0f, 3.0f, -3.0f,3.0f,-100.0f,100.0f);
@@ -25,6 +25,27 @@ void OBJRenderer::init()
   glm::mat4 Model = glm::mat4(1.0f);
 //  MVP_ = Projection * View * Model;
 
+}
+
+void OBJRenderer::LoadData(const RenderOBJ& robj)
+{
+   vec_render_obj_.push_back(robj);
+}
+void OBJRenderer::Render(ViewTransformer& vt)
+{
+  glClearColor(0.5f, 0.5f, 0.5f,0.0f);
+  glClearDepth(1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glUseProgram(program_id_);
+  glUniformMatrix4fv(location_mvp_, 1, GL_FALSE, vt.GetMVP());  //…Ë÷√Õ∂”∞æÿ’ÛMVP 
+  for (int i = 0; i < vec_render_obj_.size(); ++i)
+  {
+    vec_render_obj_[i].Render();
+  }
+  glUseProgram(0);
+  GLenum err =  glGetError();
+  std::cout << "err = " << err <<"\n";
 }
 
 
@@ -83,23 +104,25 @@ int OBJRenderer::LoadShader(const char* vs, const char* fs)
 
 const char* OBJRenderer::vertex_shader_source = {
   "#version 330 core\n"
-  "layout(location = 0) in vec3 setPosition;"
-  "out vec3 thecolor;"
+  "layout(location = 0) in vec4 setPosition;"
+  "layout(location = 1) in vec3 vertexUV;"
+  "out vec2 UV;"
   "uniform mat4 MVP;"
-  "uniform vec3 setColor;"
   "void main()"
   "{"
-  "gl_Position =  MVP * vec4(setPosition,1);"
-  "thecolor = setColor;"
+  "gl_Position =  MVP * setPosition;"
+  "UV = vertexUV.xy;"
   "}"
 };
 
 const char* OBJRenderer::fragment_shader_source = {
   "#version 330 core\n"
-  "in vec3 thecolor;"
+  "in vec2 UV;"
   "out vec3 color;"
+  "uniform sampler2D myTextureSampler;"
   "void main()"
   "{"
-  "color = thecolor;"
+  "vec2 rUV = vec2(UV.x,1-UV.y);"
+  "color = texture(myTextureSampler, rUV).rgb;"
   "}"
 };

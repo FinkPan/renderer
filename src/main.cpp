@@ -23,45 +23,46 @@ void init(void)
    obj_loader.LoadOBJ(file_path);
    obj_loader.InitializeViewTransformer(view_transformer);
    obj_loader.Start();
-   render_obj.init();
+   obj_renderer.init();
+   //render_obj.init();
 }
 
 
 void keyboard(unsigned char key, int x, int y)
 {
-//   switch (key)
-//   {
-//   case 'a':
-//     view_transformer.Translate(-1.0f, 0.0f, 0.0f);
-//     break;
-//   case 'd':
-//     view_transformer.Translate(1.0f, 0.0f, 0.0f);
-//     break;
-// 
-//   case 'w':
-//     view_transformer.Translate(0.0f, 1.0f, 0.0f);
-//     break;
-//   case 's':
-//     view_transformer.Translate(0.0f, -1.0f, 0.0f);
-//     break;
-// 
-//   case 'q':
-//     view_transformer.Translate(0.0f, 0.0f, 1.0f);
-//     break;
-//   case 'e':
-//     view_transformer.Translate(0.0f, 0.0f, -1.0f);
-//     break;
-// 
-//   case 'j':
-//     view_transformer.Rotate(10.0f,-1.0f, 0.0f, 0.0f);
-//     break;
-//   case 'l':
-//     view_transformer.Rotate(10.0f,1.0f, 0.0f, 0.0f);
-//     break;
-// 
-//   default:
-//     break;
-//   }
+  switch (key)
+  {
+  case 'a':
+    view_transformer.Translate(-1.0f, 0.0f, 0.0f);
+    break;
+  case 'd':
+    view_transformer.Translate(1.0f, 0.0f, 0.0f);
+    break;
+
+  case 'w':
+    view_transformer.Translate(0.0f, 1.0f, 0.0f);
+    break;
+  case 's':
+    view_transformer.Translate(0.0f, -1.0f, 0.0f);
+    break;
+
+  case 'q':
+    view_transformer.Translate(0.0f, 0.0f, 1.0f);
+    break;
+  case 'e':
+    view_transformer.Translate(0.0f, 0.0f, -1.0f);
+    break;
+
+  case 'j':
+    view_transformer.Rotate(10.0f,-1.0f, 0.0f, 0.0f);
+    break;
+  case 'l':
+    view_transformer.Rotate(10.0f,1.0f, 0.0f, 0.0f);
+    break;
+
+  default:
+    break;
+  }
 
   glutPostRedisplay();
 }
@@ -119,8 +120,7 @@ void mouseMidCB(int wheel, int direction, int x, int y)
 void display(void)
 {
   obj_loader.UpdateLoadingOBJ(view_transformer);
-  obj_loader.GetLoadedMaterial(render_obj)
-  obj_renderer.LoadData(render_obj);
+  obj_loader.GetLoadedMaterial(render_obj, obj_renderer);
   obj_renderer.Render(view_transformer);
 
   glFlush();

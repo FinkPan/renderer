@@ -55,16 +55,35 @@ void OBJLoader::Work()
   while (keep_working_)
   {
     Lock();
+    //如果lod改变,则清空vecOBJData_;
+    if (!vecOBJData_.empty())
+    {
+      if (vecOBJData_[0].lod() != current_lod_)
+      {
+        auto itr_obj_path1 = m_FileInfo_.find(vecOBJData_[0].lod());
+        size_t itr_obj_path_count1 = m_FileInfo_.count(current_lod_);
+        for (int i = 0; i != itr_obj_path_count1; ++i,++itr_obj_path1)
+        {
+          itr_obj_path1->second.has_load = false;
+        }
+        vecOBJData_.clear();
+
+      }
+    }
+
     //默认加载最高层第一个obj    
     auto itr_obj_path = m_FileInfo_.find(current_lod_);
     size_t itr_obj_path_count = m_FileInfo_.count(current_lod_);
     for (int i = 0; i != itr_obj_path_count; ++i,++itr_obj_path)
     {
+
       if (itr_obj_path->second.needed_load == true) //该obj需要加载
       {
+
         if (itr_obj_path->second.has_load == false) //该obj没有加载
         {
           obj_data.LoadOBJ(itr_obj_path->second.file_path);
+          itr_obj_path->second.has_load = true;
           vecOBJData_.push_back(obj_data);
         }
       }
@@ -73,7 +92,10 @@ void OBJLoader::Work()
         for (auto itr_pos = vecOBJData_.begin(); itr_pos != vecOBJData_.end(); ++itr_pos)
         {
           if (itr_pos->getfilename() == itr_obj_path->second.file_path)
+          {
+            std::cout << "删除" << itr_obj_path->second.file_path << "\n";
             vecOBJData_.erase(itr_pos);
+          }                         
         }
       }
     }
@@ -183,11 +205,19 @@ void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
 
 }
 
-void OBJLoader::GetLoadedMaterial(RenderOBJ &robj)
+void OBJLoader::GetLoadedMaterial(RenderOBJ &robj, OBJRenderer &objrenderer)
 {
   std::string str_file;
   Lock();
-   
+    for (int i = 0; i < vecOBJData_.size(); ++i)
+    {
+      if (!vecOBJData_[i].has_load())
+        break;
+      robj.init();
+      robj.LoadOBJ_OPENGL(vecOBJData_[i]);
+      objrenderer.LoadData(robj);
+      vecOBJData_[i].set_has_render(true);
+    }
   Unlock();
 }
 
@@ -202,6 +232,7 @@ void OBJLoader::AnalysisFilePath(std::string &file_name, int &lod_min, int &lod_
    std::string str_lod;
    for (int i = lod_min; i <= lod_max; ++i)
    {
+     file_head.lod = i;
      ss.clear();
      ss <<  i;
      ss >> str_lod;

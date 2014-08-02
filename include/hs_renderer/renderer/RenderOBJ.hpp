@@ -13,17 +13,19 @@ public:
   ~RenderOBJ();
 
   void init();
-  void LoadOBJ_OPENGL(const OBJData& obj_data);
+  void LoadOBJ_OPENGL(OBJData& obj_data);
   int Render();
   void ReleaseGLResource();
 
 private:
-  std::vector<OBJData> vecOBJData_;
 
   GLuint vertices_array_object_;
   GLuint vertices_buffer_object_;
   GLuint texturecoord_buffer_object_;
   GLuint indices_buffer_object_;
+  GLuint texture_buffer_object_;
+
+  GLsizei index_size_;
 
 };
 

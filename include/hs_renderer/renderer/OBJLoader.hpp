@@ -10,14 +10,16 @@
 #include "hs_renderer/renderer/ViewTransformer.hpp"
 #include "hs_renderer/renderer/RenderOBJ.hpp"
 #include "hs_renderer/renderer/OBJData.hpp"
+#include "hs_renderer/renderer/OBJRenderer.hpp"
 
 class OBJLoader
 {
   struct FileHead
   {
-    FileHead():data_finsh(false),has_load(false),needed_load(false) {}
+    FileHead():lod(0),data_finsh(false),has_load(false),needed_load(false) {}
     ~FileHead(){}
      std::string file_path;
+     int lod;
      float box[6]; //АќЮЇКа minx, miny, minz, maxx, maxy, maxz;
      bool data_finsh;
      bool has_load;
@@ -30,7 +32,7 @@ public:
   void LoadOBJ(const std::string& file_path);
   void InitializeViewTransformer(ViewTransformer& view_transformer);
   void UpdateLoadingOBJ(const ViewTransformer& view_transformer);
-  void GetLoadedMaterial(RenderOBJ &robj);
+  void GetLoadedMaterial(RenderOBJ &robj, OBJRenderer &objrenderer);
   void Start();
   void Stop();
 
