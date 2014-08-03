@@ -23,6 +23,7 @@ public:
   inline bool has_load() const { return has_load_; }
   inline std::string getfilename() const { return file_path_; }
   inline int lod() const { return lod_; }
+  inline float* box() { return &box_[0]; }
 
   void set_has_load(bool hl) { has_load_ = hl; }
   void set_has_render(bool hr) { has_render_ = hr; }

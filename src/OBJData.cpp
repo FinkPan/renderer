@@ -1,3 +1,4 @@
+
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -11,12 +12,12 @@ OBJData::OBJData()
 
 OBJData::~OBJData()
 {
-  std::cout << "删除\n";
+  //std::cout << "删除OBJData.\n";
+  //delete [] vertex_data_;
+  //delete [] texturecoord_data_;
+  //delete [] index_data_;
+  //delete [] image_data_;
 
-//   delete [] vertex_data_;
-//   delete [] texturecoord_data_;
-//   delete [] index_data_;
-//   delete [] image_data_;
 }
 
 void OBJData::LoadOBJ(const std::string& full_file_path)
@@ -30,27 +31,28 @@ void OBJData::LoadOBJ(const std::string& full_file_path)
     return;
   }
   obj_file_path.read((char*)&lod_,sizeof(int));
-  obj_file_path.ignore(sizeof(box_)); //忽略包围盒
+  //obj_file_path.ignore(sizeof(box_)); //忽略包围盒
+  obj_file_path.read((char*)box_,6*sizeof(float));
 
   //读取顶点大小及数据
   obj_file_path.read((char*)&vertex_size_,sizeof(size_t));
-  vertex_data_ = new float[vertex_size_*sizeof(float)];
+  vertex_data_ = new float[vertex_size_];
   obj_file_path.read((char*)vertex_data_,vertex_size_*sizeof(float));
                                                       
   //读取UV大小及数据
   obj_file_path.read((char*)&texturecoord_size_,sizeof(size_t));
-  texturecoord_data_ = new float[texturecoord_size_*sizeof(float)];
+  texturecoord_data_ = new float[texturecoord_size_];
   obj_file_path.read((char*)texturecoord_data_,texturecoord_size_*sizeof(float));
 
   //读取index大小及数据
   obj_file_path.read((char*)&index_size_,sizeof(size_t));
-  index_data_ = new unsigned int[index_size_*sizeof(unsigned int)];
+  index_data_ = new unsigned int[index_size_];
   obj_file_path.read((char*)index_data_,index_size_*sizeof(unsigned int));
 
   //读取image大小及数据
   obj_file_path.read((char*)&image_width_,sizeof(int));
   obj_file_path.read((char*)&image_height_,sizeof(int));
-  image_data_ = new unsigned char[ image_width_ * image_height_ * 3* sizeof(unsigned char)];
+  image_data_ = new unsigned char[ image_width_ * image_height_ * 3];
   obj_file_path.read((char*)image_data_,image_width_ * image_height_ * 3 * sizeof(unsigned char));
 
   obj_file_path.close();

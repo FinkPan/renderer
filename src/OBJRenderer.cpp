@@ -44,8 +44,8 @@ void OBJRenderer::Render(ViewTransformer& vt)
     vec_render_obj_[i].Render();
   }
   glUseProgram(0);
-  GLenum err =  glGetError();
-  std::cout << "err = " << err <<"\n";
+  //GLenum err =  glGetError();
+  ///std::cout << "err = " << err <<"\n";
 }
 
 

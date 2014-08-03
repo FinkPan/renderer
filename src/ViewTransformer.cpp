@@ -36,7 +36,7 @@ void ViewTransformer::SetProjection(float left, float right, float bottom, float
   float resolution = (right - left)/viewport_width_;
 
   CalculateLod(resolution);
-  std::cout << "lod= " << lod_ << "\n";
+ // std::cout << "lod= " << lod_ << "\n";
 
   if (projectionMode == PERSPECTIVE)
   {

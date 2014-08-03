@@ -170,6 +170,9 @@ void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
     box0 = model * box0; box1 = model * box1; box2 = model * box2; box3 = model * box3; box4 = model * box4;
     box5 = model * box5; box6 = model * box6; box7 = model * box7;
 
+    //box0.x = box1.x < 
+
+
     //minx > right || miny > top || maxx < left || maxy < bottom 则出了屏幕.
     if (box0.x > right || box0.y > top || box1.x > right || box1.y < bottom || box2.x < left || box2.y < bottom ||
         box3.x < left  || box3.y > top || box4.x > right || box4.y > top    || box5.x > right|| box5.y < bottom ||
@@ -181,6 +184,7 @@ void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
 //           itr_obj_path->second.has_load = false;
 //           needed_load_.erase(itr_pos);
 //         }
+      std::cout << "obj出边界了\n";
       itr_obj_path->second.needed_load = false;
 
     }
@@ -213,7 +217,6 @@ void OBJLoader::GetLoadedMaterial(RenderOBJ &robj, OBJRenderer &objrenderer)
     {
       if (!vecOBJData_[i].has_load())
         break;
-      robj.init();
       robj.LoadOBJ_OPENGL(vecOBJData_[i]);
       objrenderer.LoadData(robj);
       vecOBJData_[i].set_has_render(true);
