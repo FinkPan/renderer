@@ -69,25 +69,25 @@ void keyboard(unsigned char key, int x, int y)
 
 void SpecialKeysBoard(int key, int x, int y)
 {
-//   switch (key)
-//   {
-//   case GLUT_KEY_LEFT:
-//     view_transformer.RotateR(10.0f,0.0f, 1.0f, 0.0f);
-//     break;
-//   case GLUT_KEY_RIGHT:
-//     view_transformer.RotateR(10.0f,0.0f, -1.0f, 0.0f);
-// 
-//     break;
-//   case GLUT_KEY_UP:
-//     view_transformer.Rotate(10.0f, 1.0f, 0.0f, 0.0f);
-//     break;
-//   case GLUT_KEY_DOWN:
-//     view_transformer.Rotate(10.0f, -1.0f, 0.0f, 0.0f);
-//     break;
-// 
-//   default:
-//     break;
-//   }
+  switch (key)
+  {
+  case GLUT_KEY_LEFT:
+    view_transformer.RotateR(10.0f,0.0f, 1.0f, 0.0f);
+    break;
+  case GLUT_KEY_RIGHT:
+    view_transformer.RotateR(10.0f,0.0f, -1.0f, 0.0f);
+
+    break;
+  case GLUT_KEY_UP:
+    view_transformer.Rotate(10.0f, 1.0f, 0.0f, 0.0f);
+    break;
+  case GLUT_KEY_DOWN:
+    view_transformer.Rotate(10.0f, -1.0f, 0.0f, 0.0f);
+    break;
+
+  default:
+    break;
+  }
 
   glutPostRedisplay();
 

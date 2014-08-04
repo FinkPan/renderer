@@ -5,6 +5,16 @@ RenderOBJ::RenderOBJ()
 
 RenderOBJ::~RenderOBJ()
 {
+
+}
+
+void RenderOBJ::init()
+{
+//   glGenVertexArrays(1, &vertices_array_object_);
+//   glGenBuffers(1, &vertices_buffer_object_);
+//   glGenBuffers(1,&texturecoord_buffer_object_);
+//   glGenBuffers(1, &indices_buffer_object_);
+//   glGenTextures(1, &texture_buffer_object_);
 }
 
 void RenderOBJ::LoadOBJ_OPENGL(OBJData& obj_data)

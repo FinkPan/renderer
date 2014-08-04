@@ -16,7 +16,7 @@ class OBJLoader
 {
   struct FileHead
   {
-    FileHead():lod(0),data_finsh(false),has_load(false),needed_load(false) {}
+    FileHead():lod(0),data_finsh(false),has_load(false),needed_load(false),has_render(false) {}
     ~FileHead(){}
      std::string file_path;
      int lod;
@@ -24,6 +24,7 @@ class OBJLoader
      bool data_finsh;
      bool has_load;
      bool needed_load;
+     bool has_render;
   };
 public:
   OBJLoader();
@@ -50,13 +51,13 @@ private:
   int lod_min_;
   int lod_max_;
   int current_lod_;
-  std::string current_obj_;
-  //std::vector<std::string> needed_load_;
+  int prefix_lod_;
 
   std::thread working_thread_;
   std::thread calc_box_thread_;
   std::mutex mutex_;
 
+  unsigned int obj_count_;
   int keep_working_;
   int keep_loading_;
   bool box_finish_;

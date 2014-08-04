@@ -20,17 +20,15 @@ public:
   inline int image_width()  const { return image_width_; }
   inline int image_height() const { return image_height_; }
   inline unsigned char* image_data() const { return image_data_; }
-  inline bool has_load() const { return has_load_; }
   inline std::string getfilename() const { return file_path_; }
   inline int lod() const { return lod_; }
   inline float* box() { return &box_[0]; }
+  inline bool has_render() const { return has_render_; }
 
-  void set_has_load(bool hl) { has_load_ = hl; }
-  void set_has_render(bool hr) { has_render_ = hr; }
+  void set_has_render(bool shr) { has_render_ = shr; }
 
 private:
   std::string file_path_;
-  bool has_load_;
   bool has_render_;
   int lod_;
   float box_[6]; // minx, miny, minz, maxx, maxy, maxz;

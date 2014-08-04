@@ -48,6 +48,15 @@ void OBJRenderer::Render(ViewTransformer& vt)
   ///std::cout << "err = " << err <<"\n";
 }
 
+void OBJRenderer::UnLoadData()
+{
+  for (int i = 0; i < vec_render_obj_.size(); ++i)
+  {
+    vec_render_obj_[i].ReleaseGLResource();
+  }
+    
+}
+
 
 int OBJRenderer::LoadShader(const char* vs, const char* fs)
 {

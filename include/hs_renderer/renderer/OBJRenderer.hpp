@@ -21,6 +21,7 @@ public:
   void init();
   void LoadData(const RenderOBJ& robj);
   void Render(ViewTransformer& vt);
+  void UnLoadData();
 
 private:
   std::vector<RenderOBJ> vec_render_obj_;

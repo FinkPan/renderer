@@ -36,7 +36,7 @@ void ViewTransformer::SetProjection(float left, float right, float bottom, float
   float resolution = (right - left)/viewport_width_;
 
   CalculateLod(resolution);
- // std::cout << "lod= " << lod_ << "\n";
+  std::cout << "lod= " << lod_ << "\n";
 
   if (projectionMode == PERSPECTIVE)
   {
@@ -65,6 +65,7 @@ void ViewTransformer::SetViewport(int x, int y, int width, int height)
     Projection_ = glm::ortho(viewport_left_, viewport_right_,viewport_bottom_* (GLfloat)height/(GLfloat)width, viewport_top_ * (GLfloat)height/(GLfloat)width, near_, far_);
   else
     Projection_ = glm::ortho(viewport_left_*(GLfloat)width/(GLfloat)height, viewport_right_ *(GLfloat)width/(GLfloat)height, viewport_bottom_, viewport_top_, near_, far_);  
+
 }
 
 void ViewTransformer::init(int x, int y, int width, int height)

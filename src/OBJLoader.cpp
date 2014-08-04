@@ -9,7 +9,7 @@
 
 
 OBJLoader::OBJLoader() :
-  lod_min_(0),lod_max_(0),box_finish_(false)
+  lod_min_(0),lod_max_(0),box_finish_(false),obj_count_(0)
 {
   box_[0] = 0.0f; box_[1] = 0.0f; box_[2] = 0.0f;
   box_[3] = 0.0f; box_[4] = 0.0f; box_[5] = 0.0f;
@@ -60,6 +60,7 @@ void OBJLoader::Work()
     {
       if (vecOBJData_[0].lod() != current_lod_)
       {
+        std::cout << "lod改变!!!current_lod_= " <<  current_lod_ << "\n";
         auto itr_obj_path1 = m_FileInfo_.find(vecOBJData_[0].lod());
         size_t itr_obj_path_count1 = m_FileInfo_.count(current_lod_);
         for (int i = 0; i != itr_obj_path_count1; ++i,++itr_obj_path1)
@@ -67,7 +68,6 @@ void OBJLoader::Work()
           itr_obj_path1->second.has_load = false;
         }
         vecOBJData_.clear();
-
       }
     }
 
@@ -82,25 +82,39 @@ void OBJLoader::Work()
 
         if (itr_obj_path->second.has_load == false) //该obj没有加载
         {
+          std::cout << "obj没有加载,需要加载!!!\n";
+
           obj_data.LoadOBJ(itr_obj_path->second.file_path);
           itr_obj_path->second.has_load = true;
           vecOBJData_.push_back(obj_data);
+          std::cout << "Work:::vecOBJData_.size() = " << vecOBJData_.size() << "\n";
+
         }
       }
       else   //不需要加载,如果已经加载则删掉该obj
-      {  
+      {
         for (auto itr_pos = vecOBJData_.begin(); itr_pos != vecOBJData_.end(); ++itr_pos)
         {
+
           if (itr_pos->getfilename() == itr_obj_path->second.file_path)
           {
+            std::cout << "obj需要删除!!!\n";
+            itr_obj_path->second.has_load = false;
             std::cout << "删除" << itr_obj_path->second.file_path << "\n";
             vecOBJData_.erase(itr_pos);
+            if (vecOBJData_.empty())
+            {
+              break;
+            }
+            itr_pos = vecOBJData_.begin();
           }                         
         }
       }
     }
     Unlock();
+
   }//  while (keep_working_)
+
 }
 
 //文件格式:
@@ -112,6 +126,7 @@ void OBJLoader::LoadOBJ(const std::string& file_path)
   std::string file_name;
   int lod_min = 0, lod_max = 0;
   std::ifstream list_file(file_path);
+  Lock();
   if (list_file)
   {
     list_file  >> lod_min  >> lod_max;
@@ -125,7 +140,7 @@ void OBJLoader::LoadOBJ(const std::string& file_path)
   list_file.close();
   calc_box_thread_ = std::thread(&OBJLoader::CalculateBox, this);
   std::cout << "LoadOBJ!!!!!!!!!!\n";
-
+  Unlock();
 }
 
 void OBJLoader::InitializeViewTransformer(ViewTransformer& view_transformer)
@@ -140,6 +155,15 @@ void OBJLoader::InitializeViewTransformer(ViewTransformer& view_transformer)
   }
 }
 
+void FindMinMax(const float &f0,const float &f1,const float &f2,const float &f3,
+                const float &f4,const float &f5,const float &f6,const float &f7,
+                float &min, float &max)
+{
+   float val[] = {f0,f1,f2,f3,f4,f5,f6,f7};
+   min = *std::min_element(val,val+8);
+   max = *std::max_element(val,val+8);
+}
+
 void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
 {
   std::string str_load;
@@ -149,12 +173,26 @@ void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
   float top   =vt.top();
   glm::mat4 model = vt.GetModel();
   glm::vec4 box0,box1, box2, box3, box4, box5, box6, box7;
+  float minx = 0.0f, maxx = 0.0f, miny = 0.0f, maxy = 0.0f;
+  int current_lod = vt.lod(); 
 
   Lock();
-  current_lod_ = vt.lod();
+  if (current_lod > lod_max_)
+  {
+    current_lod_ = lod_max_;
+  }
+  else if(current_lod < lod_min_)
+  {
+    current_lod_ = lod_min_;
+  }
+  else
+  {
+    current_lod_ = current_lod;
+  }
+
   auto itr_obj_path = m_FileInfo_.find(current_lod_);
   size_t itr_obj_path_count = m_FileInfo_.count(current_lod_);
-  //std::vector<std::string>::iterator itr_pos = needed_load_.begin();
+  std::cout << "itr_obj_path_count = " << itr_obj_path_count << "\n";
 
   for (int i = 0; i != itr_obj_path_count; ++i,++itr_obj_path)
   {
@@ -169,41 +207,32 @@ void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
     //与变化过的model矩阵相乘;
     box0 = model * box0; box1 = model * box1; box2 = model * box2; box3 = model * box3; box4 = model * box4;
     box5 = model * box5; box6 = model * box6; box7 = model * box7;
+    int a = 1, b = 2, c = 3, d = 4;
 
-    //box0.x = box1.x < 
+     FindMinMax(box0.x, box1.x, box2.x, box3.x, box4.x, box5.x, box6.x, box7.x,minx,maxx);
+     FindMinMax(box0.y, box1.y, box2.y, box3.y, box4.y, box5.y, box6.y, box7.y,miny,maxy);
+
+
+     std::cout << "\nminx= " << minx << " >? right= " << right << "\n";
+     std::cout << "miny= " << miny << " >? top= " << top << "\n";
+     std::cout << "maxx= " << maxx << " <? left= " << left << "\n";
+     std::cout << "maxy= " << maxy << " <? bottom= " << bottom << "\n";
 
 
     //minx > right || miny > top || maxx < left || maxy < bottom 则出了屏幕.
-    if (box0.x > right || box0.y > top || box1.x > right || box1.y < bottom || box2.x < left || box2.y < bottom ||
-        box3.x < left  || box3.y > top || box4.x > right || box4.y > top    || box5.x > right|| box5.y < bottom ||
-        box6.x < left  || box6.y < bottom || box7.x < left || box7.y > top)
+    if (minx > right || miny > top || maxx < left || maxy < bottom)
     { 
-//         itr_pos = find(needed_load_.begin(),needed_load_.end(),itr_obj_path->second.file_path);
-//         if (itr_pos != needed_load_.end()) //该obj不再需要.
-//         {
-//           itr_obj_path->second.has_load = false;
-//           needed_load_.erase(itr_pos);
-//         }
       std::cout << "obj出边界了\n";
       itr_obj_path->second.needed_load = false;
-
     }
     else  //在屏幕内.需要显示出来
     {
-//       itr_pos = find(needed_load_.begin(),needed_load_.end(),itr_obj_path->second.file_path);
-//       if (itr_pos != needed_load_.end())  //已经在屏幕内了,但是已经加载过,不需要重新加载;
-//       {
-//         itr_obj_path->second.has_load = true;
-//       }
-//       else    //已经在屏幕内了, 但是没有加载;需要重新加载;
-//       {
-//         itr_obj_path->second.has_load = false;
-//         needed_load_.push_back(itr_obj_path->second.file_path);
-//       }
+      std::cout << "obj在屏幕内.需要显示出来\n";
       itr_obj_path->second.needed_load = true;
-
     }//else  //在屏幕内.需要显示出来
   }//for (int i = 0; i != itr_obj_path_count; ++i,++itr_obj_path)
+
+  std::cout << "obj_count_ = " << obj_count_ << "\n";
 
   Unlock();
 
@@ -212,16 +241,22 @@ void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
 void OBJLoader::GetLoadedMaterial(RenderOBJ &robj, OBJRenderer &objrenderer)
 {
   std::string str_file;
-  Lock();
-    for (int i = 0; i < vecOBJData_.size(); ++i)
-    {
-      if (!vecOBJData_[i].has_load())
-        break;
-      robj.LoadOBJ_OPENGL(vecOBJData_[i]);
-      objrenderer.LoadData(robj);
-      vecOBJData_[i].set_has_render(true);
-    }
-  Unlock();
+ // Lock();
+  std::cout << "vecOBJData_.size() = " << vecOBJData_.size() << "\n";
+  if (vecOBJData_.empty())
+  {
+    std::cout << "vecOBJData_.empty() \n";
+    return;
+  }
+  for (int i = 0; i < vecOBJData_.size(); ++i)
+  {
+    if (vecOBJData_[i].has_render())
+      break;
+    robj.LoadOBJ_OPENGL(vecOBJData_[i]);
+    objrenderer.LoadData(robj);
+    //vecOBJData_[i].set_has_render(true);
+  }
+  //Unlock();
 }
 
 void OBJLoader::AnalysisFilePath(std::string &file_name, int &lod_min, int &lod_max)
@@ -239,7 +274,7 @@ void OBJLoader::AnalysisFilePath(std::string &file_name, int &lod_min, int &lod_
      ss.clear();
      ss <<  i;
      ss >> str_lod;
-     file_head.file_path  = file_name + "\\" + file_name_id + "_" + str_lod + ".bin";
+     file_head.file_path  = file_name + "\\" + file_name_id + "_L" + str_lod + ".bin";
      m_FileInfo_.insert(std::make_pair(i,file_head));
    }
 }
@@ -249,7 +284,7 @@ void OBJLoader::CalculateBox()
   std::thread::id main_thread_id = std::this_thread::get_id();
   std::cout << "CalculateBox = " << main_thread_id << "\n";
   std::ifstream obj_file_path;
-  Lock();
+  //Lock();
   auto itr_obj_path = m_FileInfo_.begin();
   auto itr_obj_path_end = m_FileInfo_.end();
   int lod; 
@@ -271,7 +306,7 @@ void OBJLoader::CalculateBox()
     }
   }
   box_finish_ = true;
-  Unlock();
+  //Unlock();
 }
 
 

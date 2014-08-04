@@ -6,7 +6,7 @@
 #include "hs_renderer/renderer/OBJData.hpp"
 
 OBJData::OBJData()
-  :has_render_(false), has_load_(false),lod_(0),image_width_(0),image_height_(0)
+  :lod_(0),image_width_(0),image_height_(0),has_render_(false)
 {
 }
 
@@ -56,7 +56,6 @@ void OBJData::LoadOBJ(const std::string& full_file_path)
   obj_file_path.read((char*)image_data_,image_width_ * image_height_ * 3 * sizeof(unsigned char));
 
   obj_file_path.close();
-  has_load_ = true;
 
 }
 

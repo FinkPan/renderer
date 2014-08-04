@@ -12,6 +12,7 @@ public:
   RenderOBJ();
   ~RenderOBJ();
 
+  void init();
   void LoadOBJ_OPENGL(OBJData& obj_data);
   int Render();
   void ReleaseGLResource();
