@@ -48,6 +48,23 @@ void OBJRenderer::Render(ViewTransformer& vt)
   ///std::cout << "err = " << err <<"\n";
 }
 
+void OBJRenderer::Render(float* mvp)
+{
+  glClearColor(0.5f, 0.5f, 0.5f,0.0f);
+  glClearDepth(1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glUseProgram(program_id_);
+  glUniformMatrix4fv(location_mvp_, 1, GL_FALSE, mvp);  //ÉèÖÃÍ¶Ó°¾ØÕóMVP 
+  for (int i = 0; i < vec_render_obj_.size(); ++i)
+  {
+    vec_render_obj_[i].Render();
+  }
+  glUseProgram(0);
+  //GLenum err =  glGetError();
+  ///std::cout << "err = " << err <<"\n";
+}
+
 void OBJRenderer::UnLoadData()
 {
   for (int i = 0; i < vec_render_obj_.size(); ++i)

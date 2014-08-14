@@ -13,8 +13,6 @@
 std::string file_path = "list.txt";
 OBJLoader obj_loader;
 ViewTransformer view_transformer;
-OBJRenderer obj_renderer;
-RenderOBJ render_obj;
 
 void init(void)
 {
@@ -23,8 +21,6 @@ void init(void)
    obj_loader.LoadOBJ(file_path);
    obj_loader.InitializeViewTransformer(view_transformer);
    obj_loader.Start();
-   obj_renderer.init();
-   //render_obj.init();
 }
 
 
@@ -120,8 +116,8 @@ void mouseMidCB(int wheel, int direction, int x, int y)
 void display(void)
 {
   obj_loader.UpdateLoadingOBJ(view_transformer);
-  obj_loader.GetLoadedMaterial(render_obj, obj_renderer);
-  obj_renderer.Render(view_transformer);
+  //obj_loader.GetLoadedMaterial(render_obj, obj_renderer);
+  //obj_renderer.Render(view_transformer);
 
   glFlush();
 }

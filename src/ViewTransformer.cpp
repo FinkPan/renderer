@@ -18,11 +18,12 @@ ViewTransformer::~ViewTransformer()
 {
 }
 
-const float* ViewTransformer::GetMVP()
+float* ViewTransformer::GetMVP() 
 {
   MVP_ = Projection_ * View_ * Model_;
-  return glm::value_ptr(MVP_);
+  return const_cast<float*>(glm::value_ptr(MVP_));
 }
+
 const glm::mat4 ViewTransformer::GetModel() const
 {
   return Model_;

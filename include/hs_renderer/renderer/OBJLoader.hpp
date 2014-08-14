@@ -32,7 +32,7 @@ public:
 
   void LoadOBJ(const std::string& file_path);
   void InitializeViewTransformer(ViewTransformer& view_transformer);
-  void UpdateLoadingOBJ(const ViewTransformer& view_transformer);
+  void UpdateLoadingOBJ(ViewTransformer& view_transformer);
   void GetLoadedMaterial(RenderOBJ &robj, OBJRenderer &objrenderer);
   void Start();
   void Stop();
@@ -44,6 +44,9 @@ private:
   void Work();
   void AnalysisFilePath(std::string &file_name, int &lod_min, int &lod_max);
   void CalculateBox();
+  void InitRenderOBJ();
+  void Render();
+
 
   std::vector<OBJData> vecOBJData_;
   std::multimap<int, FileHead> m_FileInfo_;
@@ -51,7 +54,10 @@ private:
   int lod_min_;
   int lod_max_;
   int current_lod_;
-  int prefix_lod_;
+  int num_obj_;
+  RenderOBJ* render_obj_;
+  OBJRenderer obj_renderer_;
+  float MVP_[16];
 
   std::thread working_thread_;
   std::thread calc_box_thread_;

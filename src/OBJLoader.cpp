@@ -9,7 +9,7 @@
 
 
 OBJLoader::OBJLoader() :
-  lod_min_(0),lod_max_(0),box_finish_(false),obj_count_(0)
+  lod_min_(0),lod_max_(0),box_finish_(false),num_obj_(0)
 {
   box_[0] = 0.0f; box_[1] = 0.0f; box_[2] = 0.0f;
   box_[3] = 0.0f; box_[4] = 0.0f; box_[5] = 0.0f;
@@ -20,6 +20,10 @@ OBJLoader::~OBJLoader()
   if (calc_box_thread_.joinable())
   {
     calc_box_thread_.join();
+  }
+  if (render_obj_ != nullptr)
+  {
+    delete [] render_obj_;
   }
 }
 
@@ -54,7 +58,7 @@ void OBJLoader::Work()
 
   while (keep_working_)
   {
-    Lock();
+//     Lock();
     //如果lod改变,则清空vecOBJData_;
     if (!vecOBJData_.empty())
     {
@@ -111,7 +115,7 @@ void OBJLoader::Work()
         }
       }
     }
-    Unlock();
+//     Unlock();
 
   }//  while (keep_working_)
 
@@ -123,10 +127,11 @@ void OBJLoader::Work()
 //...
 void OBJLoader::LoadOBJ(const std::string& file_path)
 {
+  obj_renderer_.init();
   std::string file_name;
   int lod_min = 0, lod_max = 0;
   std::ifstream list_file(file_path);
-  Lock();
+//   Lock();
   if (list_file)
   {
     list_file  >> lod_min  >> lod_max;
@@ -134,13 +139,17 @@ void OBJLoader::LoadOBJ(const std::string& file_path)
     while(!list_file.eof())
     {
       list_file >> file_name;
+      if (file_name.empty())  //空行忽略
+        break;
+      ++num_obj_;
       AnalysisFilePath(file_name, lod_min, lod_max); 
+      file_name.clear();  //重置
     }
   }
   list_file.close();
   calc_box_thread_ = std::thread(&OBJLoader::CalculateBox, this);
-  std::cout << "LoadOBJ!!!!!!!!!!\n";
-  Unlock();
+  InitRenderOBJ();
+//   Unlock();
 }
 
 void OBJLoader::InitializeViewTransformer(ViewTransformer& view_transformer)
@@ -164,7 +173,7 @@ void FindMinMax(const float &f0,const float &f1,const float &f2,const float &f3,
    max = *std::max_element(val,val+8);
 }
 
-void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
+void OBJLoader::UpdateLoadingOBJ(ViewTransformer& vt)
 {
   std::string str_load;
   float left = vt.left();
@@ -177,6 +186,9 @@ void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
   int current_lod = vt.lod(); 
 
   Lock();
+
+  //MVP_ = vt.GetMVP();
+  memcpy(MVP_,vt.GetMVP(),16*sizeof(float));
   if (current_lod > lod_max_)
   {
     current_lod_ = lod_max_;
@@ -232,9 +244,11 @@ void OBJLoader::UpdateLoadingOBJ(const ViewTransformer& vt)
     }//else  //在屏幕内.需要显示出来
   }//for (int i = 0; i != itr_obj_path_count; ++i,++itr_obj_path)
 
-  std::cout << "obj_count_ = " << obj_count_ << "\n";
 
   Unlock();
+
+  Render();
+
 
 }
 
@@ -307,6 +321,38 @@ void OBJLoader::CalculateBox()
   }
   box_finish_ = true;
   //Unlock();
+}
+
+void OBJLoader::InitRenderOBJ()
+{
+  render_obj_ = new RenderOBJ[num_obj_];
+  for (int i = 0; i < num_obj_; ++i)
+  {
+    render_obj_[i].init();
+  }
+}
+
+void OBJLoader::Render()
+{
+    while(vecOBJData_.empty())
+    {
+      std::cout << "vecOBJData_.empty() \n";
+    }
+    Lock();
+
+    for (int i = 0; i < vecOBJData_.size(); ++i)
+    {
+      if (vecOBJData_[i].has_render())
+      {
+        obj_renderer_.Render(MVP_);
+      }
+      render_obj_[i].LoadOBJ_OPENGL(vecOBJData_[i]);
+      obj_renderer_.LoadData(render_obj_[i]);
+      obj_renderer_.Render(MVP_);
+      vecOBJData_[i].set_has_render(true);
+    }
+    Unlock();
+
 }
 
 

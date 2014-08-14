@@ -21,7 +21,7 @@ public:
   ViewTransformer();
   ~ViewTransformer();
 
-  const float* GetMVP();
+  float* GetMVP();
   const glm::mat4 GetModel() const;
 
   void SetProjection(float left, float right, float bottom, float top, ProjectionMode projectionMode = ORTHOGRAPHIC);

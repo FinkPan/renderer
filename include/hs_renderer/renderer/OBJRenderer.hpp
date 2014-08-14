@@ -21,6 +21,7 @@ public:
   void init();
   void LoadData(const RenderOBJ& robj);
   void Render(ViewTransformer& vt);
+  void Render(float* mvp);
   void UnLoadData();
 
 private:
