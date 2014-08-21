@@ -6,9 +6,9 @@
 
 namespace hs
 {
-namespace render
+namespace renderer
 {
-namespace obj_render
+namespace render
 {
 
 template <typename _Scalar> class OBJTile;

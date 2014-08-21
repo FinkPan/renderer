@@ -27,7 +27,7 @@ namespace
   typedef unsigned char ImageType;
   typedef ImageType* PImageType;
 
-  typedef hs::render::obj_render::OBJLODTilesLoaderEngine<Scalar>  OBJLODTilesLoaderEngine;
+  typedef hs::renderer::render::OBJLODTilesLoaderEngine<Scalar>  OBJLODTilesLoaderEngine;
 
   void GenerateData(const std::string& obj_path, 
                int& lod, PScalar& bounding_box,
@@ -67,7 +67,7 @@ namespace
   }
 
 
-  TEST(TestOBJ_LOD_TILES_LOADER_ENGINE, OBJ_LOD_TILES_LOADER_ENGINETest)
+  TEST(OBJLODTilesLoaderEngine, ReadOBJFile)
   {
     EnableMemLeakCheck();
     //_CrtSetBreakAlloc(729);
@@ -109,7 +109,8 @@ namespace
                  uv_size,uv_data,index_size,index_data,
                  image_width,image_height,image_data);
 
-   OBJLODTilesLoaderEngine obj_engine(obj_path);
+   //OBJLODTilesLoaderEngine obj_engine(obj_path);
+   //obj_engine.LoadTile()
 
    //±È½Ïlod
    ASSERT_EQ(lod, obj_engine.GetOBJData()->GetLod());
@@ -138,8 +139,27 @@ namespace
    {
      ASSERT_EQ(image_data[i], obj_engine.GetOBJData()->ImageData()[i]);
    }
+  }
+  TEST(OBJLODTilesLoaderEngine, Open)
+  {
+    EnableMemLeakCheck();
+    //_CrtSetBreakAlloc(729);
 
+    std::string obj_list_path = "E:\\workspace\\obj\\tianyang_gonglian_bin\\List.txt";
 
+    OBJLODTilesLoaderEngine obj_engine(obj_list_path);
 
   }
+
+  TEST(OBJLODTilesLoaderEngine, LoadTile)
+  {
+    EnableMemLeakCheck();
+    //_CrtSetBreakAlloc(729);
+
+    std::string obj_list_path = "E:\\workspace\\obj\\tianyang_gonglian_bin\\List.txt";
+
+    OBJLODTilesLoaderEngine obj_engine(obj_list_path);
+
+  }
+
 }

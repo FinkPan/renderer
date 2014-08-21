@@ -28,7 +28,7 @@ typedef IndexType* PIndexType;
 typedef unsigned char ImageType;
 typedef ImageType* PImageType;
 
-typedef hs::render::obj_render::OBJTile<Scalar> OBJTile;
+typedef hs::renderer::render::OBJTile<Scalar> OBJTile;
 
   const PScalar& TestConstBoundingBox(const OBJTile& v) 
   {

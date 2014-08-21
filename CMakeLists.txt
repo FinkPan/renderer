@@ -11,91 +11,78 @@ if(NOT OPENGL_FOUND)
   message("ERROR: OpenGL not found")
 endif(NOT OPENGL_FOUND)
 
-
-#obj_renderer
-set(RENDER_NAME "obj_renderer")
-set(RENDER_SOURCES
-  "include/hs_renderer/obj_renderer/obj_renderer.hpp"
-  )
- if(WIN32) #windows 模板需要加 _VARIADIC_MAX=10
- add_definitions(-D_VARIADIC_MAX=10) 
+if(WIN32) #windows 模板需要加 _VARIADIC_MAX=10
+  add_definitions(-D_VARIADIC_MAX=10) 
 endif() 
 
-hslib_add_library(${RENDER_NAME} ${HSPRJ_NAME}
-                  ${RENDER_SOURCES})
-SET_TARGET_PROPERTIES(${RENDER_NAME} PROPERTIES LINKER_LANGUAGE C++)
-                  
-#test_obj_renderer
-set(RENDER_UTEST_SOURCES
+###############################################################################
+#obj_utility
+set(OBJ_UTILITY_NAME "obj_utility")
+set(OBJ_UTILITY_SOURCES
+  "include/hs_renderer/obj_utility/viewing_transformer.hpp"
+  )
+
+hslib_add_library(${OBJ_UTILITY_NAME} ${HSPRJ_NAME}
+                  ${OBJ_UTILITY_SOURCES})
+#HEADONLY                  
+SET_TARGET_PROPERTIES(${OBJ_UTILITY_NAME} PROPERTIES LINKER_LANGUAGE C++)
+hslib_add_dep(${OBJ_UTILITY_NAME}
+  3RDPARTY_DEPS eigen HEADONLY
+  HS_DEPS hs_math HEADONLY
+  )
+
+#test_obj_utility
+set(OBJ_UTILITY_UTEST_NAME obj_utility_utest)
+set(OBJ_UTILITY_UTEST_SOURCES
   "unit_test/test_main.cpp"
-  "unit_test/test_obj_renderer/test_obj_renderer.cpp"
+  "unit_test/test_obj_utility/test_viewing_transformer.cpp"
   )
-hslib_add_utest(${RENDER_NAME} SOURCES
-  ${RENDER_UTEST_SOURCES})
-hslib_add_dep(${RENDER_NAME}_utest
+  
+add_executable(${OBJ_UTILITY_UTEST_NAME} ${OBJ_UTILITY_UTEST_SOURCES})    
+
+hslib_add_dep(${OBJ_UTILITY_UTEST_NAME}
+  3RDPARTY_DEPS gtest
+  3RDPARTY_DEPS eigen HEADONLY
+  3RDPARTY_DEPS freeglut
+  3RDPARTY_DEPS glew
+  HS_DEPS hs_math HEADONLY
   )
-hslib_post_build(${RENDER_NAME}_utest)
-                                  
+hslib_post_build(${OBJ_UTILITY_UTEST_NAME})
+
 if(OPENGL_FOUND)
-  target_link_libraries(${RENDER_NAME}_utest ${OPENGL_LIBRARIES})
+  target_link_libraries(${OBJ_UTILITY_UTEST_NAME} ${OPENGL_LIBRARIES})
 endif()
 
+
 ###############################################################################
-#obj_lod_tiles_loader_engine
-set(OBJ_LOD_TILES_LOADER_NAME "obj_lod_tiles_loader_engine")
-set(OBJ_LOD_TILES_LOADER_SOURCES
+#obj_render
+set(OBJ_RENDER_NAME "obj_render")
+set(OBJ_RENDER_SOURCES
+  "include/hs_renderer/obj_renderer/lod_tiles_loader.hpp"
+  "include/hs_renderer/obj_renderer/obj_tiles_loader.hpp"
   "include/hs_renderer/obj_renderer/obj_lod_tiles_loader_engine.hpp"
-  )
-#if(WIN32) #windows 模板需要加 _VARIADIC_MAX=10
-# add_definitions(-D_VARIADIC_MAX=10) 
-#endif() 
-
-hslib_add_library(${OBJ_LOD_TILES_LOADER_NAME} ${HSPRJ_NAME}
-                  ${OBJ_LOD_TILES_LOADER_SOURCES})
-#HEADONLY                  
-SET_TARGET_PROPERTIES(${OBJ_LOD_TILES_LOADER_NAME} PROPERTIES LINKER_LANGUAGE C++)
-                  
-#test_lod_tiles_loader_engine
-set(OBJ_LOD_TILES_LOADER_UTEST_NAME obj_lod_tiles_loader_engine_utest)
-set(OBJ_LOD_TILES_LOADER_UTEST_SOURCES
-  "unit_test/test_main.cpp"
-  "unit_test/test_obj_renderer/test_obj_lod_tiles_loader_engine.cpp"
-  )
-  
-add_executable(${OBJ_LOD_TILES_LOADER_UTEST_NAME} ${OBJ_LOD_TILES_LOADER_UTEST_SOURCES})    
-
-hslib_add_dep(${OBJ_LOD_TILES_LOADER_NAME}_utest
-  3RDPARTY_DEPS gtest
-  )
-hslib_post_build(${OBJ_LOD_TILES_LOADER_NAME}_utest)
-                                 
-
-###############################################################################
-#obj_tile
-set(OBJ_TILE_NAME "obj_tile")
-set(OBJ_TILE_SOURCES
   "include/hs_renderer/obj_renderer/obj_tile.hpp"
+  "include/hs_renderer/obj_renderer/obj_renderer.hpp"
   )
-#if(WIN32) #windows 模板需要加 _VARIADIC_MAX=10
-# add_definitions(-D_VARIADIC_MAX=10) 
-#endif() 
 
-hslib_add_library(${OBJ_TILE_NAME} ${HSPRJ_NAME}
-                  ${OBJ_TILE_SOURCES})
-#HEADONLY                   
-SET_TARGET_PROPERTIES(${OBJ_TILE_NAME} PROPERTIES LINKER_LANGUAGE C++)
-              
-#test_obj_tile
-set(OBJ_TILE_UTEST_NAME obj_tile_utest)
-set(OBJ_TILE_UTEST_SOURCES
+hslib_add_library(${OBJ_RENDER_NAME} ${HSPRJ_NAME}
+                  ${OBJ_RENDER_SOURCES})
+#HEADONLY                  
+SET_TARGET_PROPERTIES(${OBJ_RENDER_NAME} PROPERTIES LINKER_LANGUAGE C++)
+
+#test_obj_tiles_loader
+set(OBJ_RENDER_UTEST_NAME obj_render_utest)
+set(OBJ_RENDER_UTEST_SOURCES
   "unit_test/test_main.cpp"
+  "unit_test/test_obj_renderer/test_obj_tiles_loader.cpp"
+  "unit_test/test_obj_renderer/test_obj_lod_tiles_loader_engine.cpp"
   "unit_test/test_obj_renderer/test_obj_tile.cpp"
+  "unit_test/test_obj_renderer/test_obj_renderer.cpp"
   )
   
-add_executable(${OBJ_TILE_UTEST_NAME} ${OBJ_TILE_UTEST_SOURCES})  
-#hslib_add_utest(${OBJ_TILE_NAME} LOCAL_DEPS ${OBJ_TILE_NAME} SOURCES
-#  ${OBJ_TILE_UTEST_SOURCES})
-hslib_add_dep(${OBJ_TILE_UTEST_NAME}
+add_executable(${OBJ_RENDER_UTEST_NAME} ${OBJ_RENDER_UTEST_SOURCES})    
+
+hslib_add_dep(${OBJ_RENDER_UTEST_NAME}
   3RDPARTY_DEPS gtest
   )
-hslib_post_build(${OBJ_TILE_UTEST_NAME})
+hslib_post_build(${OBJ_RENDER_UTEST_NAME})
