@@ -35,7 +35,6 @@ namespace
 
 
   ViewingTransformer vt;
-  TransformMatrix projection_matrix;
 
   GLuint vertexBuffer;
   GLuint indexBuffer;
@@ -47,37 +46,15 @@ namespace
   void GenerateCube(const Vector3& min, const Vector3& max, Cube& vd)
   {
     int x = 0, y = 1, z = 2;
-    vd << min[x],
-          min[x],
-          max[x],
-          max[x],
+    //列主序
+    vd << min[x],min[x],max[x],max[x],
+          min[x],min[x],max[x],max[x],
+          min[y],max[y],max[y],min[y],
+          min[y],max[y],max[y],min[y],
+          max[z],max[z],max[z],max[z],
+          min[z],min[z],min[z],min[z]; 
 
-          min[x],
-          min[x],
-          max[x],
-          max[x],
-
-          min[y],
-          max[y],
-          max[y],
-          min[y],
-
-          min[y],
-          max[y],
-          max[y],
-          min[y],
-
-          max[z],
-          max[z],
-          max[z],
-          max[z],
-
-          min[z],
-          min[z],
-          min[z],
-          min[z]; 
-
-
+//行主序
 //     vd << min[x], min[y], max[z],
 //           min[x], max[y], max[z],
 //           max[x], max[y], max[z],
@@ -101,8 +78,8 @@ namespace
   const GLfloat colorData[] = 
   {
     1.0f,0.0f,0.0f,
-    1.0f,1.0f,0.0f,
-    1.0f,0.0f,1.0f,
+    0.0f,1.0f,0.0f,
+    0.0f,0.0f,1.0f,
     1.0f,0.5f,0.0f,
     0.5f,1.0f,0.3f,
     0.7f,0.2f,0.9f,
@@ -242,8 +219,11 @@ namespace
   {
     Cube cube;
     Vector3 min, max;
-    min << -1.0f, -1.0f, -1.0f;
-    max << 1.0f, 1.0f, 1.0f;
+    min << -41.8141f, -13.8217f, 116.6137f;
+    max << 133.3506f, 154.0659f, 137.3212f;
+//     min << -2.0f, -1.0f, -1.0f;
+//     max <<  0.0f, 1.0f, 1.0f;
+
     GenerateCube(min,max,cube);
     std::cout << "cube:\n" << cube << "\n\n";
 
@@ -254,7 +234,29 @@ namespace
     InitializeVertexBuffer(cube);
     InitializeVertexArrayObjects();
 
+    Scalar cube_center_x = (max[0] + min[0])/2;
+    Scalar cube_center_y = (max[1] + min[1])/2;
+    Scalar cube_center_z = (max[2] + min[2])/2;
 
+    Scalar cube_range_x = (max[0] - min[0]);
+    Scalar cube_range_y = (max[1] - min[1]);
+    Scalar cube_range_z = (max[2] - min[2]);
+
+    Scalar cube_max_range = cube_range_x > cube_range_y ? cube_range_x : cube_range_y;
+    cube_max_range = cube_max_range > cube_range_z ? cube_max_range : cube_range_z;
+
+    Vector3 min_bounding, max_bounding;
+    min_bounding << cube_center_x - cube_max_range, 
+                    cube_center_y - cube_max_range,
+                    cube_center_z - cube_max_range;
+    max_bounding << cube_center_x + cube_max_range, 
+                    cube_center_y + cube_max_range,
+                    cube_center_z + cube_max_range;
+
+    vt.SetProjectionBoundingBox3D(min_bounding,max_bounding);
+
+
+    //vt.SetViewMatrix(Vector3(cube_center_x,cube_center_y,cube_center_z+100.0f),Vector3(0.0f,0.0f,10.0f));
   }
 
   void display()
@@ -262,30 +264,14 @@ namespace
     glClearColor(0.2f, 0.2f, 0.2f,1.0f);
     glClearDepth(1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
-    std::cout << "projection_matrix:\n" << vt.ProjectionMatrix() << "\n\n";
-
-    TransformMatrix transform_matrix = vt.ViewingTransformMatrix();
-    float mvp[16] = { 0.0f };
-
-//     TransformMatrix ViewMatrix;
-//     ViewMatrix << 1.0f,0.0f,0.0f,0.0f,
-//                   0.0f,1.0f,0.0f,0.0f,
-//                   0.0f,0.0f,1.0f,-10.0f,
-//                   0.0f,0.0f,0.0f,1.0f;
-// 
-//     std::cout << "ViewMatrix:\n" << ViewMatrix << "\n\n";
-// 
-// 
-//     TransformMatrix ProjetMatrix = transform_matrix * ViewMatrix;
-
-    Scalar viewing_unit_per_pixel =
-      std::abs((vt.right() - vt.left()) /
-      Scalar(vt.viewport_width()));
-
+    Scalar viewing_unit_per_pixel =  vt.GetUintPerPixel();
     std::cout << "viewing_unit_per_pixel:\n" << viewing_unit_per_pixel << "\n\n";
 
-    glUniformMatrix4fv(LocationMVP, 1, GL_FALSE, transform_matrix.data());
+    //std::cout << "ViewingTransformMatrix:\n" << vt.ViewingTransformMatrix() << "\n\n";
+
+    glUniformMatrix4fv(LocationMVP, 1, GL_FALSE, vt.ViewingTransformMatrix().data());
 
     glBindVertexArray(vaoObject);
     glEnableVertexAttribArray(0);
@@ -310,19 +296,25 @@ namespace
       break;
 
     case 'a':
-      vt.RotationByView(0.5f, Vector3(1.0f,0.0f,0.0f));
+      vt.RotationByWorld(0.7853982f, Vector3(1.0f,0.0f,0.0f));
       break;
     case 'd':
-      vt.RotationByView(-0.5f, Vector3(1.0f,0.0f,0.0f));
+      vt.RotationByWorld(-0.7853982f, Vector3(1.0f,0.0f,0.0f));
       break;
 
-    case 'w':
-      vt.RotationByView(0.5f, Vector3(0.0f,1.0f,0.0f));
-      break;
-    case 's':
-      vt.RotationByView(-0.5f, Vector3(0.0f,1.0f,0.0f));
-      break;
+//     case 'w':
+//       vt.RotationByModel(0.7853982f, Vector3(0.0f,1.0f,0.0f));
+//       break;
+//     case 's':
+//       vt.RotationByModel(-0.7853982f, Vector3(0.0f,1.0f,0.0f));
+//       break;
 
+    case 'q':
+      vt.RotationByModel(0.7853982f, Vector3(0.0f,0.0f,1.0f));
+      break;
+    case 'e':
+      vt.RotationByModel(-0.7853982f, Vector3(0.0f,0.0f,1.0f));
+      break;
 
     default:
       break;
@@ -330,6 +322,33 @@ namespace
 
     glutPostRedisplay();
   }
+
+
+  void specialkeyboard(int key, int x, int y)
+  {
+    switch (key)
+    {
+    case GLUT_KEY_UP:
+      vt.Translate2DByView(Vector2(0.0f,-2.0f));
+      break;
+    case GLUT_KEY_DOWN:
+      vt.Translate2DByView(Vector2(0.0f,2.0f));
+      break;
+    case GLUT_KEY_RIGHT:
+      vt.Translate2DByView(Vector2(-2.0f,0.0f));
+      break;
+    case GLUT_KEY_LEFT:
+      vt.Translate2DByView(Vector2(2.0f,0.0f));
+      break;
+
+    default:
+      break;
+    }
+
+    glutPostRedisplay();
+
+  }
+
 
   double mid_button_last_x = std::numeric_limits<double>::min();
   double mid_button_last_y = std::numeric_limits<double>::min();
@@ -383,16 +402,17 @@ namespace
     max << 1,1;
     //vt.SetProjectionBoundingBox2D(min, max);
     vt.SetPerspective(false);
-    vt.left() = -10.5f;
-    vt.right() = 10.5f;
-    vt.bottom() = -10.5f;
-    vt.top() = 10.5f;
-    vt.n() = -10;
-    vt.f() = 10;
+//     vt.left() = -10.5f;
+//     vt.right() = 10.5f;
+//     vt.bottom() = -10.5f;
+//     vt.top() = 10.5f;
+//     vt.n() = -100;
+//     vt.f() = 100;
     init();
 
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
+    glutSpecialFunc(specialkeyboard);
     glutMouseFunc(mouseCB);
     glutReshapeFunc(reshape);
 

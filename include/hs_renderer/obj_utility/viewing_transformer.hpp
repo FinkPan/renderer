@@ -23,6 +23,7 @@ public:
 
   typedef EIGEN_VECTOR(Scalar, 3) Translate;
   typedef EIGEN_MATRIX(Scalar, 4, 4) TransformMatrix;
+  typedef EIGEN_MATRIX(Scalar, 3, 3) RMatrix;
   typedef EIGEN_VECTOR(Scalar, 2) Vector2;
   typedef EIGEN_VECTOR(Scalar, 3) Vector3;
 
@@ -62,7 +63,13 @@ public:
       viewport_y_(viewport_y),
       viewport_width_(viewport_width),
       viewport_height_(viewport_height),
-      mask_(mask) {}
+      mask_(mask)
+  {
+    mvp_ = TransformMatrix::Identity();
+    project_ = TransformMatrix::Identity();
+    view_ = TransformMatrix::Identity();
+    model_ = TransformMatrix::Identity();
+  }
 
   bool IsPerspective() const
   {
@@ -82,6 +89,11 @@ public:
   void SetKeepRatio(bool is_keep_ratio)
   {
     mask_.set(VTF_KEEP_RATIO, is_keep_ratio);
+  }
+
+  Scalar GetUintPerPixel()
+  {
+    return std::abs((vt.right() - vt.left()) /Scalar(vt.viewport_width()));
   }
 
   TransformMatrix SimilarMatrix() const
@@ -134,15 +146,19 @@ public:
 
   TransformMatrix ViewingTransformMatrix() const
   {
-    return ProjectionMatrix() * SimilarMatrix();
+    //return ProjectionMatrix() * t_ * SimilarMatrix();
+    /*TransformMatrixA p;
+    p = ProjectionMatrix();*/
+    //project_ = ProjectionMatrix();
+    //mvp_ = project_ * view_ * model_;
+
+    return ProjectionMatrix() * SimilarMatrix() ;
   }
 
-  TransformMatrix ViewMatrix(const Vector3& camera_position, 
-                             const Vector3& camera_posture)
+  void SetViewMatrix(const Vector3& camera_position, 
+                     const Vector3& camera_posture)
   {
-    TransformMatrix view_matrix = TransformMatrix::Zero();
-    
-
+    translate_ = Translate(camera_position[0], camera_position[1], camera_position[2]);
   }
 
   void SetProjectionBoundingBox2D(const Vector2& min, const Vector2& max)
@@ -151,12 +167,34 @@ public:
     right_ = max[0];
     bottom_ = min[1];
     top_ = max[1];
-    near_ = Scalar(-1);
-    far_ = Scalar(1);
+    near_ = Scalar(-100000.0);
+    far_ = Scalar(100000.0);
     if (IsKeepRatio())
     {
       KeepRatio2D();
     }
+  }
+
+  void SetProjectionBoundingBox3D(const Vector3& min, const Vector3& max)
+  {
+    left_ = min[0];
+    right_ = max[0];
+    bottom_ = min[1];
+    top_ = max[1];
+    near_ = Scalar(-100000.0);
+    far_ = Scalar(100000.0);
+
+    offset_[0] = (max[0] + min[0])/2; 
+    offset_[1] = (max[1] + min[1])/2; 
+    offset_[2] = (max[2] + min[2])/2; 
+
+
+
+    if (IsKeepRatio())
+    {
+      KeepRatio2D();
+    }
+
   }
 
   void Translate2DByView(const Vector2& translate)
@@ -185,10 +223,64 @@ public:
 
   void RotationByView(Scalar angle, Vector3 axis)
   {
-     //AngleAxis a(angle, axis);
-     rotation_ = AngleAxis(angle, axis);
-     RotationMatrix aa = RotationMatrix(rotation_);
+    translate_ = -offset_;
+
+     Rotation rotation_matrix = AngleAxis(angle, axis);
+     rotation_ = rotation_ * rotation_matrix;
   }
+
+  void RotationByModel(Scalar angle, Vector3 axis)
+  {
+    TransformMatrix Result = TransformMatrix::Identity();
+    Result.block(0, 0, 3, 3) = RotationMatrix(rotation_);
+    Result.block(0, 3, 3, 1) = translate_;
+
+    //将物体移动到原点.
+    TransformMatrix T = TransformMatrix::Identity();
+    T.block(0, 3, 3, 1) = offset_;
+
+    //将物体旋转.
+    TransformMatrix R = TransformMatrix::Identity();
+    Rotation rotation_matrix = AngleAxis(angle, axis);
+    R.block(0, 0, 3, 3) = RotationMatrix(rotation_matrix);
+
+    //将物体移动到原来地方
+    TransformMatrix Tm = T.inverse();
+
+    //将物体 移动到原点->旋转->移动回原来地方.
+    Result =  Result * T * R * Tm;
+
+    translate_ = Result.block(0, 3, 3, 1);
+    rotation_ =  Result.block(0, 0, 3, 3);
+
+  }
+
+  void RotationByWorld(Scalar angle, Vector3 axis)
+  {
+    TransformMatrix Result = TransformMatrix::Identity();
+    Result.block(0, 0, 3, 3) = RotationMatrix(rotation_);
+    Result.block(0, 3, 3, 1) = translate_;
+
+    //将物体移动到原点.
+    TransformMatrix T = TransformMatrix::Identity();
+    T.block(0, 3, 3, 1) = offset_;
+
+    //将物体旋转.
+    TransformMatrix R = TransformMatrix::Identity();
+    Rotation rotation_matrix = AngleAxis(angle, axis);
+    R.block(0, 0, 3, 3) = RotationMatrix(rotation_matrix);
+
+    //将物体移动到原来地方
+    TransformMatrix Tm = T.inverse();
+
+    //将物体 移动到原点->旋转->移动回原来地方.
+    Result =   T * R * Tm * Result;
+
+    translate_ = Result.block(0, 3, 3, 1);
+    rotation_ =  Result.block(0, 0, 3, 3);
+
+  }
+
 
   void FocusByViewFrame(const Vector2& view_frame_min,
                         const Vector2& view_frame_max)
@@ -282,6 +374,10 @@ private:
   }
 
 private:
+  TransformMatrix mvp_;
+  TransformMatrix project_;
+  TransformMatrix view_;
+  TransformMatrix model_;
   Rotation rotation_;
   Translate translate_;
   Scalar scale_;
@@ -291,6 +387,7 @@ private:
   Scalar bottom_;
   Scalar near_;
   Scalar far_;
+  Vector3 offset_;
   int viewport_x_;
   int viewport_y_;
   int viewport_width_;
